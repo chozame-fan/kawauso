@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>カワウソ育成</title>
+<meta name="theme-color" content="#e9ddd0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="カワウソ">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<style>
+  :root { --bg: rgba(255, 250, 244, .86); --line: rgba(150, 110, 80, .2); --tx: #4a3a30; --sub: #8f7a68; --acc: #e8829a; --acc2: #f2b48a; }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #e9ddd0; color: var(--tx); font-family: "Hiragino Maru Gothic ProN", "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif; -webkit-user-select: none; user-select: none; }
+  #c { position: fixed; inset: 0; width: 100%; height: 100%; touch-action: none; display: block; }
+  .panel { background: var(--bg); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 6px 22px rgba(120, 80, 50, .14); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  button, input { font: inherit; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+  button { color: var(--tx); background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; cursor: pointer; }
+  button:active { transform: scale(.96); }
+  #hud { position: fixed; top: max(10px, env(safe-area-inset-top)); left: 10px; width: min(290px, calc(100vw - 110px)); padding: 10px 13px; }
+  #hud .top { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; cursor: pointer; }
+  #name { font-size: 19px; font-weight: 800; }
+  #sex { color: var(--acc); font-weight: 700; }
+  #stage { font-size: 11px; color: #fff; background: var(--acc); border-radius: 99px; padding: 2px 9px; font-weight: 700; }
+  #switch { margin-left: auto; padding: 3px 9px; font-size: 12px; border-radius: 99px; }
+  #age { font-size: 12px; color: var(--sub); margin-top: 2px; }
+  .size { display: flex; gap: 10px; align-items: baseline; margin: 2px 0 6px; }
+  #len { font-size: 24px; font-weight: 800; }
+  #wt { color: var(--sub); font-weight: 700; }
+  #trait { font-size: 11px; color: var(--sub); }
+  .meters { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 12px; margin-top: 6px; }
+  .m { font-size: 11px; color: var(--sub); }
+  .m .bar { height: 7px; background: rgba(150, 110, 80, .14); border-radius: 9px; overflow: hidden; margin-top: 2px; }
+  .m .bar i { display: block; height: 100%; width: 50%; border-radius: 9px; transition: width .4s, background .4s; }
+  #bubble { margin-top: 8px; font-size: 13px; padding: 7px 10px; background: #fff; border-radius: 12px; border: 1px solid var(--line); position: relative; }
+  #pace { font-size: 10px; color: var(--sub); margin-top: 4px; }
+  #hud.mini .more { display: none; }
+  #topbtns { position: fixed; top: max(10px, env(safe-area-inset-top)); right: 10px; display: flex; flex-direction: column; gap: 8px; }
+  #topbtns button { width: 76px; padding: 8px 4px; font-size: 13px; font-weight: 700; border-radius: 16px; box-shadow: 0 4px 14px rgba(120, 80, 50, .14); }
+  #btn-zukan small, #btn-speed small { display: block; font-size: 10px; color: var(--sub); font-weight: 400; }
+  #bottom { position: fixed; left: 50%; transform: translateX(-50%); bottom: max(10px, env(safe-area-inset-bottom)); display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; padding: 8px; width: max-content; max-width: calc(100vw - 12px); }
+  #bottom button { font-size: 14px; font-weight: 700; padding: 10px 12px; border-radius: 14px; }
+  #bottom button b { font-weight: 400; margin-right: 3px; }
+  #btn-food { background: var(--acc2); border-color: var(--acc2); color: #fff; }
+  #btn-play { background: #8ec9e8; border-color: #8ec9e8; color: #fff; }
+  #bottom button.on { background: var(--acc); border-color: var(--acc); color: #fff; }
+  .heart { position: fixed; z-index: 15; font-size: 26px; pointer-events: none; transform: translate(-50%, -50%); animation: heartUp 1.3s ease-out forwards; }
+  @keyframes heartUp { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.4); } 15% { opacity: 1; transform: translate(-50%, -60%) scale(1.15); } 100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), -260%) scale(.9); } }
+  .say { position: fixed; z-index: 13; pointer-events: none; transform: translate(-50%, -100%); background: #fff; color: var(--tx); border: 2px solid #f4c6d2; border-radius: 16px; padding: 5px 12px; font-size: 15px; font-weight: 800; white-space: nowrap; box-shadow: 0 4px 14px rgba(120, 80, 50, .18); transition: opacity .3s; }
+  .say::after { content: ''; position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%); border: 7px solid transparent; border-top-color: #fff; border-bottom: 0; }
+  .say.pop { animation: sayPop .35s ease-out; }
+  @keyframes sayPop { 0% { transform: translate(-50%, -80%) scale(.6); opacity: 0; } 70% { transform: translate(-50%, -104%) scale(1.06); opacity: 1; } 100% { transform: translate(-50%, -100%) scale(1); } }
+  #complete .panel { max-width: 620px; text-align: center; }
+  #complete h2 { margin: 4px 0; font-size: 26px; color: var(--acc); }
+  #complete p { font-size: 14px; line-height: 1.7; }
+  .cp-crown { font-size: 40px; }
+  .cp-gift { background: #fff1f5; border-radius: 12px; padding: 8px; }
+  .cp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 5px; margin: 10px 0; }
+  .cp-grid img, .cp-grid .ph { width: 100%; aspect-ratio: 3/2; object-fit: cover; border-radius: 6px; background: #efe4d8; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .cp-btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .cp-btns button:first-child, #zk-album { background: var(--acc); color: #fff; border-color: var(--acc); font-weight: 800; }
+  .zk-done { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-weight: 800; color: var(--acc); font-size: 17px; margin: 4px 0 10px; }
+  #confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 40; }
+  #album { position: fixed; inset: 0; z-index: 50; background: #1d1612; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  #al-img { max-width: 100%; max-height: 100%; width: 100%; height: 100%; object-fit: contain; transition: opacity .45s; }
+  #al-img.kb { animation: kb 3.4s ease-out forwards; }
+  @keyframes kb { from { transform: scale(1.0) translateX(0); } to { transform: scale(1.12) translateX(var(--kx, 3%)); } }
+  #al-cap { position: absolute; left: 0; right: 0; bottom: max(28px, env(safe-area-inset-bottom)); text-align: center; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.6); }
+  .al-no { font-size: 13px; opacity: .8; }
+  .al-name { font-size: 24px; font-weight: 800; }
+  .al-day { font-size: 13px; opacity: .85; }
+  #album.end #al-cap { top: 0; bottom: 0; display: flex; align-items: center; justify-content: center; }
+  .al-end { font-size: 24px; font-weight: 800; line-height: 1.8; animation: pop .8s ease-out; }
+  .al-end button { margin-top: 14px; font-size: 15px; }
+  #al-close { position: absolute; top: max(12px, env(safe-area-inset-top)); right: 12px; background: rgba(255,255,255,.15); color: #fff; border-color: rgba(255,255,255,.3); }
+  #set-body .row.dev { background: #f3f0ff; border-radius: 10px; padding: 8px; margin-top: 8px; }
+  #toasts { position: fixed; top: 38%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; width: min(92vw, 520px); z-index: 20; }
+  .toast { background: rgba(255, 252, 248, .95); border: 1px solid var(--line); padding: 10px 16px; border-radius: 14px; font-size: 14px; text-align: center; animation: pop .3s ease-out; transition: opacity .4s, transform .4s; box-shadow: 0 6px 20px rgba(120, 80, 50, .18); }
+  .toast.big { font-size: 16px; font-weight: 800; border: 2px solid var(--acc); }
+  .toast.out { opacity: 0; transform: translateY(-10px); }
+  @keyframes pop { from { opacity: 0; transform: scale(.9); } }
+  .sheet { position: fixed; left: 50%; bottom: -110%; transform: translateX(-50%); width: min(560px, calc(100vw - 12px)); max-height: 70vh; overflow: auto; padding: 14px; transition: bottom .3s; z-index: 8; }
+  .sheet.open { bottom: max(10px, env(safe-area-inset-bottom)); }
+  .sheet h3 { margin: 0 0 8px; font-size: 16px; display: flex; justify-content: space-between; align-items: center; }
+  .sheet .list { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 6px; }
+  .item { display: flex; gap: 10px; align-items: center; text-align: left; opacity: .5; }
+  .item.good { opacity: 1; }
+  .item .ic { font-size: 26px; }
+  .item b { display: block; font-size: 14px; }
+  .item small { display: block; font-size: 11px; color: var(--sub); line-height: 1.35; }
+  #set-body .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--line); }
+  #set-body .row b { width: 100%; font-size: 13px; }
+  #set-body .row small { width: 100%; color: var(--sub); font-size: 11px; }
+  #set-body button.on { background: var(--acc); color: #fff; border-color: var(--acc); }
+  #set-body input { padding: 7px 10px; border-radius: 10px; border: 1px solid var(--line); width: 150px; }
+  .modal { position: fixed; inset: 0; background: rgba(80, 55, 40, .35); display: flex; align-items: center; justify-content: center; z-index: 30; padding: 12px; }
+  .modal > .panel { width: min(760px, 100%); max-height: 92vh; overflow: auto; padding: 16px; background: #fffaf4; }
+  #zukan .head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  #zukan h2 { margin: 0; font-size: 20px; }
+  .tabs { display: flex; gap: 6px; margin: 10px 0; }
+  .tabs button.on { background: var(--acc); color: #fff; border-color: var(--acc); }
+  .zk-sum { margin: 4px 0 10px; color: var(--sub); }
+  .zk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .zk-card { padding: 6px; text-align: left; display: flex; flex-direction: column; gap: 4px; background: #f3ebe2; }
+  .zk-card.got { background: #fff; }
+  .zk-card img, .zk-card .ph { width: 100%; aspect-ratio: 3/2; object-fit: cover; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 34px; background: #efe4d8; }
+  .zk-card .ph.q { color: #c7b4a2; font-weight: 800; }
+  .zk-card .nm { font-size: 12px; font-weight: 700; }
+  .zk-card .hint { font-size: 10px; color: var(--sub); }
+  #card .panel { max-width: 560px; }
+  #card img { width: 100%; border-radius: 12px; }
+  #card .ph.big { font-size: 80px; text-align: center; padding: 30px; }
+  #card h3 { margin: 10px 0 2px; }
+  #card .meta { color: var(--sub); font-size: 12px; margin: 0 0 8px; }
+  .grow-now { font-size: 14px; margin-bottom: 8px; }
+  #gchart { width: 100%; border-radius: 10px; }
+  .stages { padding-left: 20px; font-size: 13px; }
+  .stages li { margin: 6px 0; color: var(--sub); }
+  .stages li.done { color: var(--tx); }
+  .stages li.done::marker { color: var(--acc); }
+  .law { background: #fff1e8; border-radius: 10px; padding: 10px; font-size: 13px; line-height: 1.6; }
+  .src { font-size: 13px; line-height: 1.8; }
+  .small { font-size: 11px; color: var(--sub); }
+  #intro .panel { max-width: 440px; text-align: center; }
+  #intro h1 { font-size: 26px; margin: 6px 0; }
+  #intro p { color: var(--sub); font-size: 13px; line-height: 1.6; }
+  #intro input[type=text] { font-size: 18px; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--line); width: 200px; text-align: center; }
+  #intro label { display: block; margin: 10px 0; font-size: 14px; }
+  .coat-title { font-size: 13px; color: var(--sub); margin-top: 6px; }
+  #coats { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 6px 0; }
+  .coat { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; padding: 6px 6px; min-width: 64px; }
+  .coat i { width: 28px; height: 28px; border-radius: 50%; display: block; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+  .coat.on { border-color: var(--acc); box-shadow: 0 0 0 2px var(--acc); }
+  #btn-start { background: var(--acc); color: #fff; border: none; font-size: 18px; font-weight: 800; padding: 12px 30px; border-radius: 99px; margin-top: 8px; }
+  #hud .fold { font-size: 11px; color: var(--sub); margin-left: 2px; }
+  #hud.mini .fold::after { content: '▼ くわしく'; }
+  #hud:not(.mini) .fold::after { content: '▲ たたむ'; }
+  #hud.mini #mini-bars { display: grid; }
+  #mini-bars { display: none; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 5px; }
+  #mini-bars i { display: block; height: 5px; border-radius: 9px; background: #7bd88f; }
+  @media (max-width: 520px) {
+    #hud { padding: 8px 10px; width: calc(100vw - 104px); }
+    #len { font-size: 20px; }
+    #topbtns button { width: 72px; font-size: 12px; padding: 7px 2px; }
+    #bottom { width: calc(100vw - 12px); flex-wrap: nowrap; gap: 4px; padding: 6px; }
+    #bottom button { flex: 1; font-size: 11px; padding: 7px 2px; display: flex; flex-direction: column; align-items: center; gap: 1px; white-space: nowrap; }
+    #bottom button b { font-size: 20px; font-weight: 400; line-height: 1.1; }
+  }
+</style>
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.js", "three/addons/": "./vendor/addons/" } }</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="hud" class="panel" hidden>
+  <div class="top"><span id="name"></span><span id="sex"></span><span id="stage"></span><button id="switch" hidden></button></div>
+  <div id="age"></div><span class="fold"></span>
+  <div id="mini-bars"><i id="mb-hunger"></i><i id="mb-energy"></i><i id="mb-clean"></i><i id="mb-aff"></i></div>
+  <div class="more">
+    <div class="size"><span id="len"></span><span id="wt"></span></div>
+    <div id="trait"></div>
+    <div class="meters">
+      <div class="m">🍼 おなか<div class="bar"><i id="m-hunger"></i></div></div>
+      <div class="m">⚡ げんき<div class="bar"><i id="m-energy"></i></div></div>
+      <div class="m">✨ きれい<div class="bar"><i id="m-clean"></i></div></div>
+      <div class="m">💗 なかよし<div class="bar"><i id="m-aff"></i></div></div>
+    </div>
+    <div id="bubble"></div>
+    <div id="pace"></div>
+  </div>
+</div>
+
+<div id="topbtns" hidden>
+  <button id="btn-zukan">📖 図鑑<small id="zk-count"></small></button>
+  <button id="btn-speed">⏩ はやさ<small id="spd"></small></button>
+  <button id="btn-set">⚙️ 設定</button>
+  <button id="btn-snd">🔊</button>
+</div>
+
+<div id="bottom" class="panel" hidden>
+  <button id="btn-food"><b>🍼</b>ごはん</button>
+  <button id="btn-play"><b>🐠</b>あそぶ</button>
+  <button id="btn-wrap"><b>🧣</b>くるむ</button>
+  <button id="btn-night"><b>🌙</b>ねんね</button>
+</div>
+
+<div id="food-sheet" class="sheet panel"><h3>ごはん <button class="x">✕</button></h3><div id="food-list" class="list"></div></div>
+<div id="toy-sheet" class="sheet panel"><h3>あそぶ <button class="x">✕</button></h3><div id="toy-list" class="list"></div></div>
+<div id="set-sheet" class="sheet panel"><h3>設定 <button class="x">✕</button></h3><div id="set-body"></div></div>
+
+<div id="zukan" class="modal" hidden>
+  <div class="panel">
+    <div class="head"><h2>📖 カワウソ図鑑</h2><button id="zk-close">とじる</button></div>
+    <div class="tabs"><button data-tab="list">できごと</button><button data-tab="grow">成長</button><button data-tab="src">参考にした資料</button></div>
+    <div id="zk-body"></div>
+  </div>
+</div>
+<div id="card" class="modal" hidden><div class="panel" id="card-body"></div></div>
+
+<div id="intro" class="modal" hidden>
+  <div class="panel">
+    <div style="font-size:54px">🦦</div>
+    <h1>カワウソ育成</h1>
+    <p>生まれたてのコツメカワウソの赤ちゃんを育てよう。<br>ミルク・水あそび・石あそび…育つほど図鑑のできごとが増えていきます。</p>
+    <label>名前　<input id="in-name" type="text" maxlength="10"></label>
+    <div class="coat-title">毛色</div>
+    <div id="coats"></div>
+    <label><input id="in-two" type="checkbox"> きょうだい2匹で育てる</label>
+    <label id="row2" hidden>2匹目　<input id="in-name2" type="text" maxlength="10"></label>
+    <button id="btn-start">はじめる</button>
+    <p class="small">カワウソをタップ（または指でなぞる）となでられて、ハートが出ます。床をタップすると、そっちへ見に来ます。ドラッグで見る向き、ピンチ（ホイール）で近づけます。</p>
+  </div>
+</div>
+
+<div id="complete" class="modal" hidden><div class="panel" id="complete-body"></div></div>
+<canvas id="confetti" hidden></canvas>
+<div id="album" hidden>
+  <img id="al-img" alt="">
+  <div id="al-cap"></div>
+  <button id="al-close">とじる ✕</button>
+</div>
+<div id="toasts"></div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
