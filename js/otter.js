@@ -115,6 +115,15 @@ export const ACTS = {
   pray: { dur: 3.0, base: 'stand2', fn(p, k, t, o) { const e = plat(k, 0.2); p.shL = mix(p.shL, 1.15, e); p.shR = mix(p.shR, 1.15, e); p.elL = mix(p.elL, -1.55, e); p.elR = mix(p.elR, -1.55, e); p.shS = mix(p.shS, -0.45, e); p.hdR += 0.25 * e * o.actSide; p.hdP -= 0.1 * e; } },
   sniff: { dur: 2.6, base: 'stand', fn(p, k, t, o) { const e = plat(k, 0.2); p.nkP -= 0.55 * e; p.hdP -= 0.35 * e; p.hdY += 0.25 * Math.sin(t * 2.5) * e; o.sniffBoost = e; } },
   dig: { dur: 4.2, base: 'stand', fn(p, k, t, o) { const e = plat(k, 0.15); p.nkP -= 0.5 * e; p.hdP -= 0.4 * e; p.bP -= 0.15 * e; p.shL += (0.25 + 0.55 * Math.sin(t * 15)) * e; p.shR += (0.25 + 0.55 * Math.sin(t * 15 + Math.PI)) * e; p.elL += 0.3 * Math.max(0, Math.sin(t * 15)) * e; p.elR += 0.3 * Math.max(0, Math.sin(t * 15 + Math.PI)) * e; p.tlY += 0.2 * Math.sin(t * 5) * e; o.sniffBoost = e * 0.7; } },
+  // お尻フリフリ：腹ばいで後ろ足をカエルのように広げ、お尻を左右にふりながら、しっぽをヘリコプターのようにぐるぐる回す
+  furi: { dur: 4.6, base: 'lie', fn(p, k, t, o) {
+    const e = plat(k, 0.12), w = t * 19, W = o.wave;
+    p.hpS = mix(p.hpS, 1.05, e); p.hpL = mix(p.hpL, -1.0, e) + 0.18 * Math.sin(w) * e; p.hpR = mix(p.hpR, -1.0, e) - 0.18 * Math.sin(w) * e;
+    p.knL = mix(p.knL, 0.05, e); p.knR = mix(p.knR, 0.05, e);
+    p.nkP -= 0.12 * e; p.hdP -= 0.08 * e; p.tlP += 0.3 * e;
+    p.bY += 0.05 * Math.sin(w) * e; p.spY -= 0.1 * Math.sin(w) * e; p.bR += 0.06 * Math.sin(w) * e;
+    if (W) { W.hipY += 0.26 * Math.sin(w) * e; for (let i = 0; i < W.ty.length; i++) { const ph = w - i * 0.85, a = 0.55 + 0.12 * i; W.ty[i] += a * Math.sin(ph) * e; W.tx[i] += a * 0.55 * Math.cos(ph) * e; } }
+  } },
   kick: { dur: 2.6, base: 'back', fn(p, k, t, o) { const e = plat(k, 0.15); p.hpL += 0.6 * Math.sin(t * 13) * e; p.hpR += 0.6 * Math.sin(t * 13 + Math.PI) * e; p.shL += 0.4 * Math.sin(t * 11 + 1) * e; p.shR += 0.4 * Math.sin(t * 11) * e; p.bR += 0.12 * Math.sin(t * 6) * e; } },
 };
 

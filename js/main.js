@@ -7,7 +7,7 @@ import * as A from './audio.js';
 import { lengthAt, weightAt, stageAt, STAGES, FOODS, TOYS, ZUKAN, NAMES, PERSONAS, SOURCES, LAW_NOTE, COATS, FACES, ROOM_ITEMS } from './data.js';
 
 // しぐさ → 図鑑
-const ACT_Z = { dig: 'horihori', tilt: 'kubikashige', shake: 'buruburu', roll: 'goron', stretch: 'nobi', scratch: 'kaki', chase: 'kurukuru', hop: 'pyon', clap: 'onedari', wave: 'baibai', pray: 'oteawase', kick: 'batabata' };
+const ACT_Z = { dig: 'horihori', tilt: 'kubikashige', shake: 'buruburu', roll: 'goron', stretch: 'nobi', scratch: 'kaki', chase: 'kurukuru', hop: 'pyon', clap: 'onedari', wave: 'baibai', pray: 'oteawase', kick: 'batabata', furi: 'furifuri' };
 
 const $ = s => document.querySelector(s);
 const rnd = (a, b) => a + Math.random() * (b - a);
@@ -44,7 +44,7 @@ const SAY = {
   act: {
     tilt: ['？', 'なになに？❓'], stretch: ['ふぁ〜😪', 'のび〜'], shake: ['ぶるぶるっ💦'], clap: ['ちょうだい👏', 'ごはん！👏'],
     wave: ['やっほー👋', 'おーい！'], pray: ['おねがい🙏', 'すき🙏💕'], roll: ['ごろーん🔄'], sniff: ['くんくん👃', 'くんくん…なにもない？', 'ふむふむ👃'],
-    hop: ['わーい！🎵', 'ぴょん！✨'], chase: ['くるくる〜🌀', 'まてまて〜'], kick: ['きゃっきゃっ😆'], scratch: ['かきかき…'],
+    hop: ['わーい！🎵', 'ぴょん！✨'], chase: ['くるくる〜🌀', 'まてまて〜'], kick: ['きゃっきゃっ😆'], furi: ['フリフリ〜🚁', 'ぶんぶん！🌪️', 'しっぽ ぐるぐる〜'], scratch: ['かきかき…'],
   },
 };
 
@@ -176,6 +176,7 @@ function decide(k) {
     ['sled', d >= 90 ? (k.persona.id === 'wanpaku' ? 1.0 : 0.45) : 0],
     ['room:tunnel', world.has?.tunnel ? (k.persona.id === 'wanpaku' ? 1.3 : 0.7) : 0],
     ['room:sandbox', world.has?.sandbox ? 0.5 : 0], ['room:stump', world.has?.stump ? 0.6 : 0],
+    ['act:furi', d >= 25 ? (d < 150 ? 0.9 : 0.4) * (k.persona.id === 'wanpaku' ? 1.4 : 1) : 0],
     ['act:roll', d >= 40 && k.d.aff >= 30 ? 0.5 : 0], ['act:wave', d >= 60 && k.d.aff >= 50 ? 0.5 : 0], ['act:pray', d >= 60 && k.d.aff >= 40 ? 0.4 : 0],
   ];
   let tot = w.reduce((s, x) => s + x[1], 0), r = Math.random() * tot, c = 'idle';
@@ -983,6 +984,7 @@ function play(id) {
   inRoom(front);
   if (TOYS.find(t => t.id === id)?.room) return goRoom(k, id);
   if (id === 'sled') { setState(k, 'sled'); return; }
+  if (id === 'furi') { setState(k, 'act', { act: 'furi' }); return; }
   if (id === 'fishtoy') {
     const fsh = world.fishToy; fsh.visible = true;
     fsh.scale.setScalar(clamp(s * 0.34 / fsh.userData.len, 0.5, 1.1));
